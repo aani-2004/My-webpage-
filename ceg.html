@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLEAN ENVI GUIDE</title>
+    <style>
+        body {
+            background-image: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9"); /* Replace with your image */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .form-container,.calculator-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #ed3d40;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .result-container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>CLEAN ENVI GUIDE</h1>
+    <h2>Provide Your Details</h2>
+
+    <div class="form-container">
+        <form id="pollutionForm">
+            <label for="pollutant">Main Pollutant:</label>
+            <select id="pollutant" required>
+                <option value="PM2.5">PM2.5</option>
+                <option value="PM10">PM10</option>
+                <option value="NO2">NO2</option>
+                <option value="SO2">SO2</option>
+                <option value="CO">CO</option>
+                <option value="O3">O3</option>
+            </select>
+
+            <label for="population">Population in Area:</label>
+            <input type="number" id="population" placeholder="Enter population" required>
+
+            <label for="waterQuality">Water Quality Index (WQI):</label>
+            <input type="number" id="waterQuality" placeholder="Enter WQI value" required>
+
+            <label for="landQuality">Land Quality Index (LQI):</label>
+            <input type="number" id="landQuality" placeholder="Enter LQI value" required>
+
+            <label for="airQuality">air Quality Index (AQI):</label>
+            <input type="number" id="airQuality" placeholder="Enter AQI value" required>
+
+            
+
+            <button type="button" onclick="getLocation()">Get Solutions</button>
+        </form>
+    </div>
+
+    <div class="calculator-container">
+        <h2>Calculate Pollution Indices</h2>
+        <button onclick="navigateTo('aqi-calculator.html')">Calculate AQI</button>
+        <button onclick="navigateTo('wqi-calculator.html')">Calculate WQI</button>
+        <button onclick="navigateTo('lqi-calculator.html')">Calculate LQI</button>
+    </div>
+
+    <div id="result" class="result-container" style="display: none;">
+        <h2>Solutions for Your Area</h2>
+        <p id="solutionText"></p>
+    </div>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function showPosition(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const pollutant = document.getElementById("pollutant").value;
+            const population = document.getElementById("population").value;
+            const wqi = parseFloat(document.getElementById("waterQuality").value);
+            const lqi = parseFloat(document.getElementById("landQuality").value);
+            const aqi = parseFloat(document.getElementById("airQuality").value);
+
+
+            let solutionText = `
+                <p>Your location: Latitude ${latitude}, Longitude ${longitude}</p>
+                <p>Population: ${population}</p>
+                <p>AQI: ${aqi} (Air Quality Index)</p>
+                <p>WQI: ${wqi} (Water Quality Index)</p>
+                <p>LQI: ${lqi} (Land Quality Index)</p>
+            `;
+
+            solutionText += "<h3>Recommended Actions:</h3><ul>";
+
+            if (aqi > 200) {
+                solutionText += `
+                    <li>Reduce industrial emissions and adopt cleaner technologies.</li>
+                    <li>Encourage carpooling and public transportation.</li>
+                    <li>Plant trees and establish green zones.</li>
+                `;
+            } else if (aqi > 100) {
+                solutionText += `
+                    <li>Control dust from construction sites and unpaved roads.</li>
+                    <li>Promote eco-friendly fuel alternatives.</li>
+                    <li>Monitor and reduce indoor air pollution sources.</li>
+                `;
+            } else {
+                solutionText += `
+                    <li>Maintain low pollution levels with strict regulations.</li>
+                    <li>Encourage sustainable practices and awareness campaigns.</li>
+                `;
+            }
+
+            if (wqi < 50) {
+                solutionText += `
+                    <li>Implement water purification systems.</li>
+                    <li>Reduce industrial waste discharge into water bodies.</li>
+                `;
+            }
+
+            if (lqi < 50) {
+                solutionText += `
+                    <li>Adopt soil conservation practices.</li>
+                    <li>Minimize the use of harmful chemicals in agriculture.</li>
+                `;
+            }
+
+            solutionText += "</ul>";
+
+            document.getElementById("solutionText").innerHTML = solutionText;
+            document.getElementById("result").style.display = "block";
+        }
+
+        function showError(error) {
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    alert("User denied the request for Geolocation.");
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert("Location information is unavailable.");
+                    break;
+                case error.TIMEOUT:
+                    alert("The request to get user location timed out.");
+                    break;
+                case error.UNKNOWN_ERROR:
+                    alert("An unknown error occurred.");
+                    break;
+            }
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+    </script>
+</body>
+</html>

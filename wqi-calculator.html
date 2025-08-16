@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WQI Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            background-image: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9"); /* Replace with your image */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WQI Calculator</h1>
+    <form id="wqiForm">
+        <label for="pollutant">Select Pollutant:</label>
+        <select id="pollutant" required>
+            <option value="">--Select--</option>
+            <option value="pH">pH</option>
+            <option value="DO">Dissolved Oxygen (DO)</option>
+            <option value="BOD">Biochemical Oxygen Demand (BOD)</option>
+            <option value="TDS">Total Dissolved Solids (TDS)</option>
+            <option value="Nitrate">Nitrate</option>
+        </select>
+
+        <label for="concentration">Enter Concentration (mg/L):</label>
+        <input type="number" id="concentration" step="0.01" required>
+
+        <label for="location">Your Location:</label>
+        <input type="text" id="location" placeholder="Fetched" disabled>
+
+        <div style="display: flex; justify-content: space-between;">
+            <button type="button" onclick="calculateWQI()">Calculate</button>
+            <button type="reset" onclick="resetForm()">Reset</button>
+        </div>
+    </form>
+
+    <div id="result" style="display: none;"></div>
+
+    <script>
+        // Fetch user's location
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            }else {
+                alert("Geolocation is not supported by this browser.")};
+            }
+
+        // Function to calculate WQI
+        function calculateWQI() {
+            const pollutant = document.getElementById('pollutant').value;
+            const concentration = parseFloat(document.getElementById('concentration').value);
+
+            if (!pollutant || isNaN(concentration)) {
+                alert('Please provide valid inputs!');
+                return;
+            }
+
+            // Simplified WQI calculation (replace this with real WQI formula if available)
+            let wqi;
+            switch (pollutant) {
+                case 'pH':
+                    wqi = 100 - Math.abs(7 - concentration) * 10; // Example: Ideal pH = 7
+                    break;
+                case 'DO':
+                    wqi = concentration >= 5 ? 100 : concentration * 20; // Example: Ideal DO >= 5 mg/L
+                    break;
+                case 'BOD':
+                    wqi = concentration <= 3 ? 100 : 100 - (concentration - 3) * 10; // Example: Ideal BOD <= 3 mg/L
+                    break;
+                case 'TDS':
+                    wqi = concentration <= 500 ? 100 : 100 - (concentration - 500) * 0.1; // Example: Ideal TDS <= 500 mg/L
+                    break;
+                case 'Nitrate':
+                    wqi = concentration <= 10 ? 100 : 100 - (concentration - 10) * 5; // Example: Ideal Nitrate <= 10 mg/L
+                    break;
+                default:
+                    wqi = null;
+            }
+
+            if (wqi === null || wqi < 0) {
+                alert('Concentration out of range for WQI calculation.');
+                return;
+            }
+
+            // Display the result
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>Pollutant:</strong> ${pollutant}<br>
+                <strong>Concentration:</strong> ${concentration} mg/L<br>
+                <strong>WQI Value:</strong> ${Math.round(wqi)}
+            `;
+        }
+
+        // Function to reset the form and result
+        function resetForm() {
+            document.getElementById('result').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

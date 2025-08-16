@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LQI Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px; background-image: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9"); /* Replace with your image */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-color: #f9f9f9;
+
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LQI Calculator</h1>
+    <form id="lqiForm">
+        <label for="pollutant">Select Pollutant:</label>
+        <select id="pollutant" required>
+            <option value="">--Select--</option>
+            <option value="Heavy Metals">Heavy Metals</option>
+            <option value="Pesticides">Pesticides</option>
+            <option value="pH">Soil pH</option>
+            <option value="Organic Matter">Organic Matter</option>
+            <option value="Salinity">Salinity</option>
+        </select>
+
+        <label for="concentration">Enter Concentration (mg/kg):</label>
+        <input type="number" id="concentration" step="0.01" required>
+
+        <label for="location">Your Location:</label>
+        <input type="text" id="location" placeholder="Fetched" disabled>
+
+        <div style="display: flex; justify-content: space-between;">
+            <button type="button" onclick="calculateLQI()">Calculate</button>
+            <button type="reset" onclick="resetForm()">Reset</button>
+        </div>
+    </form>
+
+    <div id="result" style="display: none;"></div>
+
+    <script>
+        // Fetch user's location
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            }else {
+                alert("Geolocation is not supported by this browser.")};
+            }
+
+        // Function to calculate LQI
+        function calculateLQI() {
+            const pollutant = document.getElementById('pollutant').value;
+            const concentration = parseFloat(document.getElementById('concentration').value);
+
+            if (!pollutant || isNaN(concentration)) {
+                alert('Please provide valid inputs!');
+                return;
+            }
+
+            // Simplified LQI calculation (replace with real formula if available)
+            let lqi;
+            switch (pollutant) {
+                case 'Heavy Metals':
+                    lqi = concentration <= 50 ? 100 : 100 - (concentration - 50) * 2; // Example: Threshold = 50 mg/kg
+                    break;
+                case 'Pesticides':
+                    lqi = concentration <= 5 ? 100 : 100 - (concentration - 5) * 5; // Example: Threshold = 5 mg/kg
+                    break;
+                case 'pH':
+                    lqi = 100 - Math.abs(7 - concentration) * 10; // Example: Ideal pH = 7
+                    break;
+                case 'Organic Matter':
+                    lqi = concentration >= 3 ? 100 : concentration * 33.33; // Example: Ideal >= 3%
+                    break;
+                case 'Salinity':
+                    lqi = concentration <= 4 ? 100 : 100 - (concentration - 4) * 10; // Example: Threshold = 4 dS/m
+                    break;
+                default:
+                    lqi = null;
+            }
+
+            if (lqi === null || lqi < 0) {
+                alert('Concentration out of range for LQI calculation.');
+                return;
+            }
+
+            // Display the result
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>Pollutant:</strong> ${pollutant}<br>
+                <strong>Concentration:</strong> ${concentration} mg/kg<br>
+                <strong>LQI Value:</strong> ${Math.round(lqi)}
+            `;
+        }
+
+        // Function to reset the form and result
+        function resetForm() {
+            document.getElementById('result').style.display = 'none';
+        }
+    </script>
+</body>

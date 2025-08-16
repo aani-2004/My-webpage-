@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Calculator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f9;
+            background-image: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        h1 {
+            text-align: center;
+            color: #faf6f6;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 5px;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AQI CALCULATOR WITH MAP</h1>
+
+    <form id="aqiForm">
+        <label for="pollutant">Select Pollutant:</label>
+        <select id="pollutant" required>
+            <option value="">--Select--</option>
+            <option value="PM2.5">PM2.5</option>
+            <option value="PM10">PM10</option>
+            <option value="O3">Ozone (O3)</option>
+            <option value="NO2">Nitrogen Dioxide (NO2)</option>
+            <option value="SO2">Sulfur Dioxide (SO2)</option>
+            <option value="CO">Carbon Monoxide (CO)</option>
+        </select>
+
+        <label for="concentration">Enter Concentration (µg/m³):</label>
+        <input type="number" id="concentration" step="0.01" required>
+
+        <label for="location">Your Location:</label>
+        <input type="text" id="location" placeholder="Fetched" disabled>
+
+        <button type="button" onclick="calculateAQI()">Calculate</button>
+        <button type="reset">Reset</button>
+       
+    </form>
+
+    <div id="result" style="display: none;"></div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Replace with your own WAQI API Key
+        const apiKey = 'edebc77339aead845fe4fdb0da2b1db532aba4c3'; // Replace with your WAQI API key
+
+        // Initialize the map
+        const map = L.map('map').setView([20, 0], 2); // Default position (World centered)
+
+        // Set up the tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Function to fetch AQI data from WAQI API
+        async function getAQI() {
+            const location = document.getElementById('location').value.trim();
+
+            if (!location) {
+                alert('Please enter a valid location!');
+                return;
+            }
+
+            // Fetch geolocation data for the location entered by the user
+            const geocodeResponse = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${location}&key=YOUR_OPENCAGE_API_KEY`);
+            const geocodeData = await geocodeResponse.json();
+
+            if (geocodeData.results.length === 0) {
+                alert('Location not found!');
+                return;
+            }
+
+            const lat = geocodeData.results[0].geometry.lat;
+            const lon = geocodeData.results[0].geometry.lng;
+
+            // Fetch AQI data from WAQI API
+            const aqiResponse = await fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${apiKey}`);
+            const aqiData = await aqiResponse.json();
+
+            if (aqiData.status !== 'ok') {
+                alert('Could not fetch AQI data!');
+                return;
+            }
+
+            const aqi = aqiData.data.aqi;
+            const aqiLevels = ['Good', 'Fair', 'Moderate', 'Poor', 'Very Poor'];
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<strong>AQI for ${location}:</strong> ${aqi} (${aqiLevels[Math.min(Math.floor(aqi / 50), 4)]})`;
+
+            // Center the map to the location
+            map.setView([lat, lon], 10);
+
+            // Place a marker at the location with AQI info
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup(`<b>${location}</b><br>AQI: ${aqi} (${aqiLevels[Math.min(Math.floor(aqi / 50), 4)]})`)
+                .openPopup();
+        }
+
+        function calculateAQI() {
+            const pollutant = document.getElementById('pollutant').value;
+            const concentration = parseFloat(document.getElementById('concentration').value);
+
+            if (!pollutant || isNaN(concentration)) {
+                alert('Please provide valid inputs!');
+                return;
+            }
+
+            // Simplified AQI calculation (for demonstration purposes)
+            const aqi = Math.round(concentration * 10); // Replace with real AQI formula if available
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>Pollutant:</strong> ${pollutant}<br>
+                <strong>Concentration:</strong> ${concentration} µg/m³<br>
+                <strong>AQI Value:</strong> ${aqi}
+               
+
+
+            `;
+        }
+
+        // Add a click event to show AQI for any location on the map
+        map.on('click', async function(e) {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+
+            // Fetch AQI data from WAQI API for clicked location
+            const aqiResponse = await fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=${apiKey}`);
+            const aqiData = await aqiResponse.json();
+
+            if (aqiData.status !== 'ok') {
+                alert('Could not fetch AQI data!');
+                return;
+            }
+
+            const aqi = aqiData.data.aqi;
+            const aqiLevels = ['Good', 'Fair', 'Moderate', 'Poor', 'Very Poor'];
+
+            // Place a marker with AQI information
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup(`<b>Selected Location</b><br>AQI: ${aqi} (${aqiLevels[Math.min(Math.floor(aqi / 50), 4)]})`)
+                .openPopup();
+        });
+    </script>
+</body>
+</html>
+
